@@ -1,0 +1,25 @@
+appId: com.phuongnbm.avtotalmixer
+productName: AVTotal Mixer
+copyright: "© 2026 PhuongNBM"
+
+directories:
+  output: dist_electron
+
+extraResources:
+  - from: resources/
+    to: .
+    filter:
+      - "**/*"
+
+win:
+  icon: resources/Logo.ico
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: AVTotal Mixer
