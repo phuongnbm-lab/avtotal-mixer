@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLang } from '../LangContext'
 
 const APP_TITLE = 'AVTotal Mixer'
-const APP_VERSION = 'v260529'
+const APP_VERSION = 'v260530'
 const GITHUB_REPO = 'phuongnbm-lab/avtotal-mixer'
 
 function daysLeft(dateStr) {
@@ -152,8 +152,8 @@ export default function TitleBar({ dark, onToggleDark, licenseInfo }) {
             )}
             {licenseInfo.expiry_date && (() => {
               const days = daysLeft(licenseInfo.expiry_date)
-              const danger = days !== null && days <= 10
-              const warn   = days !== null && days <= 14 && !danger
+              const danger = days !== null && days <= 5
+              const warn   = days !== null && days <= 10 && !danger
               return (
                 <span style={{
                   fontSize: 11, fontWeight: 600,

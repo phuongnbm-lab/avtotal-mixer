@@ -173,9 +173,11 @@ function createWindow(splash) {
       })
 
       const safe = (s) => s.replace(/'/g, "''")
+      // -Verb RunAs triggers UAC elevation; -Wait doesn't work across elevation boundary,
+      // so we use Sleep to give the NSIS installer time to finish before relaunching.
       const psCmd = exePath
-        ? `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Wait; Start-Sleep -Seconds 1; Start-Process -FilePath '${safe(exePath)}'`
-        : `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Wait`
+        ? `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Verb RunAs; Start-Sleep -Seconds 25; Start-Process -FilePath '${safe(exePath)}'`
+        : `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Verb RunAs`
 
       spawn('powershell.exe', ['-WindowStyle', 'Hidden', '-NonInteractive', '-Command', psCmd], {
         detached: true, stdio: 'ignore'
