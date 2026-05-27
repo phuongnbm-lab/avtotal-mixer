@@ -390,7 +390,7 @@ export default function App() {
 
       {/* Footer — ngoài scroll, luôn nằm cuối window */}
       <div style={{ textAlign: 'right', color: 'var(--muted)', fontSize: 11, padding: '5px 18px 7px', flexShrink: 0 }}>
-        v260527 · Bá Phương · 0904066020
+        v260528 · Bá Phương · 0904066020
       </div>
     </div>
   )

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLang } from '../LangContext'
 
 const APP_TITLE = 'AVTotal Mixer'
-const APP_VERSION = 'v260527'
+const APP_VERSION = 'v260528'
 const GITHUB_REPO = 'phuongnbm-lab/avtotal-mixer'
 
 function daysLeft(dateStr) {
@@ -51,6 +51,21 @@ export default function TitleBar({ dark, onToggleDark, licenseInfo }) {
     await window.api.update.download(downloadUrl)
   }
 
+  function checkUpdate() {
+    setUpdateStatus('checking')
+    fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`)
+      .then(r => r.json())
+      .then(data => {
+        const tag = data.tag_name?.replace(/^v/, '')
+        if (!tag) { setUpdateStatus('latest'); return }
+        setLatestVersion(tag)
+        const asset = data.assets?.find(a => a.name.endsWith('.exe'))
+        if (asset) setDownloadUrl(asset.browser_download_url)
+        setUpdateStatus(tag > APP_VERSION.replace(/^v/, '') ? 'available' : 'latest')
+      })
+      .catch(() => setUpdateStatus('latest'))
+  }
+
   return (
     <>
       <div className="drag-region" style={{
@@ -76,26 +91,42 @@ export default function TitleBar({ dark, onToggleDark, licenseInfo }) {
             {APP_VERSION}
           </span>
 
-          {/* Update button */}
-          {(updateStatus === 'available' || updateStatus === 'downloading') && (
-            <button
-              className="no-drag"
-              onClick={updateStatus === 'available' ? handleUpdate : undefined}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4,
-                padding: '3px 10px', borderRadius: 5, border: 'none',
-                background: updateStatus === 'downloading'
-                  ? 'linear-gradient(135deg, #3b82f6, #2563eb)'
-                  : 'linear-gradient(135deg, #22c55e, #15803d)',
-                color: '#fff', fontSize: 11, fontWeight: 700,
-                cursor: updateStatus === 'downloading' ? 'default' : 'pointer',
-                animation: updateStatus === 'available' ? 'glow-update 1.2s ease-in-out infinite' : 'none',
-              }}
-              title={updateStatus === 'downloading' ? 'Đang tải...' : `Cài v${latestVersion} tự động`}
-            >
-              {updateStatus === 'downloading' ? `⬇ ${downloadPercent}%` : '⬆ Update'}
-            </button>
-          )}
+          {/* Update button — always visible */}
+          <button
+            className="no-drag"
+            onClick={
+              updateStatus === 'available' ? handleUpdate :
+              updateStatus === 'latest' ? checkUpdate : undefined
+            }
+            style={{
+              display: 'flex', alignItems: 'center',
+              padding: '3px 8px', borderRadius: 5, border: 'none',
+              transition: 'all 0.2s',
+              ...(updateStatus === 'available' ? {
+                background: 'linear-gradient(135deg, #22c55e, #15803d)',
+                color: '#fff', fontSize: 11, fontWeight: 700, gap: 4,
+                cursor: 'pointer',
+                animation: 'glow-update 1.2s ease-in-out infinite',
+              } : updateStatus === 'downloading' ? {
+                background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                color: '#fff', fontSize: 11, fontWeight: 700, gap: 4,
+                cursor: 'default',
+              } : {
+                background: 'transparent',
+                color: dark ? '#4A4870' : '#C5BFE0',
+                fontSize: 14, cursor: updateStatus === 'latest' ? 'pointer' : 'default',
+              })
+            }}
+            title={
+              updateStatus === 'available'  ? `Cài v${latestVersion} tự động` :
+              updateStatus === 'downloading' ? 'Đang tải...' :
+              updateStatus === 'checking'   ? 'Đang kiểm tra...' :
+              'Đang dùng bản mới nhất — click để kiểm tra lại'
+            }
+          >
+            {updateStatus === 'downloading' ? `⬇ ${downloadPercent}%` :
+             updateStatus === 'available'   ? '⬆ Update' : '🔄'}
+          </button>
         </div>
 
         {/* Spacer */}
