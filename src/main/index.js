@@ -174,7 +174,8 @@ function createWindow(splash) {
       const safe = (s) => s.replace(/'/g, "''")
       const appExe = join(process.env.LOCALAPPDATA || '', 'Programs', 'AVTotal Mixer', 'AVTotal Mixer.exe')
       const psCmd = `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Wait; Start-Sleep -Seconds 1; Start-Process -FilePath '${safe(appExe)}'`
-      spawn('powershell.exe', ['-WindowStyle', 'Hidden', '-NonInteractive', '-Command', psCmd], {
+      // Use cmd /c start to spawn PowerShell in a fully independent process group
+      spawn('cmd.exe', ['/c', 'start', '/MIN', 'powershell.exe', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', psCmd], {
         detached: true, stdio: 'ignore'
       }).unref()
 
