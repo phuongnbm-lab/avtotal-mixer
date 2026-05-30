@@ -184,12 +184,9 @@ function createWindow(splash) {
       })
 
       const safe = (s) => s.replace(/'/g, "''")
-      // perMachine installs to Program Files — restart from there after update.
-      const newExePath = `$env:ProgramFiles\\AVTotal Mixer\\AVTotal Mixer.exe`
-      // -Wait does not work across UAC elevation boundary — use Sleep instead.
-      const psCmd = `Start-Sleep -Seconds 3; Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Verb RunAs; Start-Sleep -Seconds 45; Start-Process -FilePath "${newExePath}"`
-
-      spawn('powershell.exe', ['-NonInteractive', '-Command', psCmd], {
+      const appExe = join(process.env.LOCALAPPDATA || '', 'Programs', 'AVTotal Mixer', 'AVTotal Mixer.exe')
+      const psCmd = `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Wait; Start-Sleep -Seconds 1; Start-Process -FilePath '${safe(appExe)}'`
+      spawn('powershell.exe', ['-WindowStyle', 'Hidden', '-NonInteractive', '-Command', psCmd], {
         detached: true, stdio: 'ignore'
       }).unref()
 

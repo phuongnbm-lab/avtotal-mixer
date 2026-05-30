@@ -18,9 +18,7 @@ win:
       arch: [x64]
 
 nsis:
-  oneClick: false
-  perMachine: true
-  allowToChangeInstallationDirectory: false
+  oneClick: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: AVTotal Mixer
