@@ -1,6 +1,6 @@
 {
   "name": "avtotal-mixer",
-  "version": "260537.0.0",
+  "version": "260538.0.0",
   "description": "AVTotal Mixer - Mix audio and video with FFmpeg",
   "main": "out/main/index.js",
   "author": "PhuongNBM",
