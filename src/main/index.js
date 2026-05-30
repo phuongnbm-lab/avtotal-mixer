@@ -144,43 +144,31 @@ function createWindow(splash) {
     mainWindow.setSize(w, Math.round(h), true)
   })
 
-  // Auto-update: download installer + run silently
+  // Auto-update: identical pattern to CAPCUT_PACKAGE which is confirmed working
   ipcMain.handle('update:download', async (_event, downloadUrl) => {
     const win = BrowserWindow.getAllWindows()[0]
     const tmpPath = join(app.getPath('temp'), 'AVTotalMixerUpdate.exe')
-    const exePath = app.isPackaged ? app.getPath('exe') : null
 
     try {
       await new Promise((resolve, reject) => {
+        const request = net.request(downloadUrl)
         const file = createWriteStream(tmpPath)
         let done = 0, total = 0
 
-        function doRequest(url) {
-          const request = net.request({ url, redirect: 'follow' })
-          request.on('redirect', (status, method, redirectUrl) => {
-            request.followRedirect()
-          })
-          request.on('response', (response) => {
-            if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-              doRequest(response.headers.location)
-              return
-            }
-            total = parseInt(response.headers['content-length'] || '0')
-            response.on('data', (chunk) => {
-              done += chunk.length
-              file.write(chunk)
-              if (total > 0) win?.webContents.send('update:progress', {
-                percent: Math.round((done / total) * 100)
-              })
+        request.on('response', (response) => {
+          total = parseInt(response.headers['content-length'] || '0')
+          response.on('data', (chunk) => {
+            done += chunk.length
+            file.write(chunk)
+            if (total > 0) win?.webContents.send('update:progress', {
+              percent: Math.round((done / total) * 100)
             })
-            response.on('end', () => file.close(resolve))
-            response.on('error', (err) => { file.close(); reject(err) })
           })
-          request.on('error', (err) => { file.close(); reject(err) })
-          request.end()
-        }
-
-        doRequest(downloadUrl)
+          response.on('end', () => file.close(resolve))
+          response.on('error', (err) => { file.close(); reject(err) })
+        })
+        request.on('error', (err) => { file.close(); reject(err) })
+        request.end()
       })
 
       const safe = (s) => s.replace(/'/g, "''")
