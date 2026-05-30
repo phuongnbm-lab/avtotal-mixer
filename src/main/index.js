@@ -187,9 +187,10 @@ function createWindow(splash) {
       const installDir = exePath ? dirname(exePath) : null
       // Pass /D=installDir so NSIS installs into the same folder the user originally chose.
       const args = installDir ? `/S /D=${installDir}` : '/S'
+      // Wait 3s for the app to fully exit before installer tries to overwrite the exe.
       const psCmd = exePath
-        ? `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '${args}' -Verb RunAs; Start-Sleep -Seconds 30; Start-Process -FilePath '${safe(exePath)}'`
-        : `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '${args}' -Verb RunAs`
+        ? `Start-Sleep -Seconds 3; Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '${args}' -Verb RunAs; Start-Sleep -Seconds 30; Start-Process -FilePath '${safe(exePath)}'`
+        : `Start-Sleep -Seconds 3; Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '${args}' -Verb RunAs`
 
       spawn('powershell.exe', ['-WindowStyle', 'Hidden', '-NonInteractive', '-Command', psCmd], {
         detached: true, stdio: 'ignore'
