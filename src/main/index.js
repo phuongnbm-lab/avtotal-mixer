@@ -184,15 +184,11 @@ function createWindow(splash) {
       })
 
       const safe = (s) => s.replace(/'/g, "''")
-      const installDir = exePath ? dirname(exePath) : null
-      // Pass /D=installDir so NSIS installs into the same folder the user originally chose.
-      const args = installDir ? `/S /D=${installDir}` : '/S'
-      // Wait 3s for the app to fully exit before installer tries to overwrite the exe.
-      const psCmd = exePath
-        ? `Start-Sleep -Seconds 3; Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '${args}' -Verb RunAs; Start-Sleep -Seconds 30; Start-Process -FilePath '${safe(exePath)}'`
-        : `Start-Sleep -Seconds 3; Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '${args}' -Verb RunAs`
+      // perMachine installs to Program Files — restart from there after update.
+      const newExePath = `$env:ProgramFiles\\AVTotal Mixer\\AVTotal Mixer.exe`
+      const psCmd = `Start-Sleep -Seconds 3; Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Verb RunAs -Wait; Start-Process -FilePath "${newExePath}"`
 
-      spawn('powershell.exe', ['-WindowStyle', 'Hidden', '-NonInteractive', '-Command', psCmd], {
+      spawn('powershell.exe', ['-NonInteractive', '-Command', psCmd], {
         detached: true, stdio: 'ignore'
       }).unref()
 
