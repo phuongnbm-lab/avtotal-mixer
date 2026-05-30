@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, Menu, nativeImage, net } from 'electron'
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { readFileSync, createWriteStream, unlinkSync } from 'fs'
 import { spawn } from 'child_process'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -184,11 +184,12 @@ function createWindow(splash) {
       })
 
       const safe = (s) => s.replace(/'/g, "''")
-      // -Verb RunAs triggers UAC elevation; -Wait doesn't work across elevation boundary,
-      // so we use Sleep to give the NSIS installer time to finish before relaunching.
+      const installDir = exePath ? dirname(exePath) : null
+      // Pass /D=installDir so NSIS installs into the same folder the user originally chose.
+      const args = installDir ? `/S /D=${installDir}` : '/S'
       const psCmd = exePath
-        ? `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Verb RunAs; Start-Sleep -Seconds 25; Start-Process -FilePath '${safe(exePath)}'`
-        : `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '/S' -Verb RunAs`
+        ? `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '${args}' -Verb RunAs; Start-Sleep -Seconds 30; Start-Process -FilePath '${safe(exePath)}'`
+        : `Start-Process -FilePath '${safe(tmpPath)}' -ArgumentList '${args}' -Verb RunAs`
 
       spawn('powershell.exe', ['-WindowStyle', 'Hidden', '-NonInteractive', '-Command', psCmd], {
         detached: true, stdio: 'ignore'
