@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLang } from '../LangContext'
 
 const APP_TITLE = 'AVTotal Mixer'
-const APP_VERSION = 'v260549'
+const APP_VERSION = 'v260551'
 const GITHUB_REPO = 'phuongnbm-lab/avtotal-mixer'
 
 function daysLeft(dateStr) {
