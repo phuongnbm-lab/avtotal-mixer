@@ -152,24 +152,35 @@ function createWindow(splash) {
 
     try {
       await new Promise((resolve, reject) => {
-        const request = net.request(downloadUrl)
         const file = createWriteStream(tmpPath)
         let done = 0, total = 0
 
-        request.on('response', (response) => {
-          total = parseInt(response.headers['content-length'] || '0')
-          response.on('data', (chunk) => {
-            done += chunk.length
-            file.write(chunk)
-            if (total > 0) win?.webContents.send('update:progress', {
-              percent: Math.round((done / total) * 100)
-            })
+        function doRequest(url) {
+          const request = net.request({ url, redirect: 'follow' })
+          request.on('redirect', (status, method, redirectUrl) => {
+            request.followRedirect()
           })
-          response.on('end', () => file.close(resolve))
-          response.on('error', (err) => { file.close(); reject(err) })
-        })
-        request.on('error', (err) => { file.close(); reject(err) })
-        request.end()
+          request.on('response', (response) => {
+            if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+              doRequest(response.headers.location)
+              return
+            }
+            total = parseInt(response.headers['content-length'] || '0')
+            response.on('data', (chunk) => {
+              done += chunk.length
+              file.write(chunk)
+              if (total > 0) win?.webContents.send('update:progress', {
+                percent: Math.round((done / total) * 100)
+              })
+            })
+            response.on('end', () => file.close(resolve))
+            response.on('error', (err) => { file.close(); reject(err) })
+          })
+          request.on('error', (err) => { file.close(); reject(err) })
+          request.end()
+        }
+
+        doRequest(downloadUrl)
       })
 
       const safe = (s) => s.replace(/'/g, "''")
